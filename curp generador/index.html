@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador CURP - Tabla de Tokens</title>
+</head>
+<body>
+
+    <h1>Generador de CURP y Tabla de Símbolos</h1>
+    <p>Restricción Geográfica: CDMX / Sonora</p>
+    <hr>
+
+    <label>Nombre(s):</label><br>
+    <input type="text" id="nombre"><br><br>
+
+    <label>Primer Apellido:</label><br>
+    <input type="text" id="paterno"><br><br>
+
+    <label>Segundo Apellido:</label><br>
+    <input type="text" id="materno"><br><br>
+
+    <label>Fecha de Nacimiento:</label><br>
+    <input type="date" id="fecha"><br><br>
+
+    <label>Sexo:</label><br>
+    <select id="sexo">
+        <option value="H">Hombre</option>
+        <option value="M">Mujer</option>
+    </select><br><br>
+
+    <label>Entidad:</label><br>
+    <select id="entidad">
+        <option value="DF">Ciudad de México (DF)</option>
+        <option value="SR">Sonora (SR)</option>
+    </select><br><br>
+
+    <button onclick="generar()">Generar y Desglosar</button>
+
+    <hr>
+
+    <h3>CURP Resultante:</h3>
+    <h1 id="resultado-final"></h1>
+
+    <h3>Desglose Estructural (Tabla de Tokens):</h3>
+    
+    <table border="1" cellpadding="5" cellspacing="0" width="100%">
+        <thead>
+            <tr style="background-color: #cccccc;">
+                <th>Posición</th>
+                <th>Carácter(es)</th>
+                <th>Concepto (Token)</th>
+                <th>Regla de Construcción</th>
+            </tr>
+        </thead>
+        <tbody id="cuerpo-tabla">
+            </tbody>
+    </table>
+
+    <script>
+        function generar() {
+            // 1. OBTENCIÓN DE DATOS
+            var nombre = document.getElementById("nombre").value.toUpperCase();
+            var paterno = document.getElementById("paterno").value.toUpperCase();
+            var materno = document.getElementById("materno").value.toUpperCase();
+            var fecha = document.getElementById("fecha").value;
+            var sexo = document.getElementById("sexo").value;
+            var entidad = document.getElementById("entidad").value;
+
+            if (nombre === "" || paterno === "" || fecha === "") {
+                alert("Faltan datos requeridos.");
+                return;
+            }
+
+            // 2. CÁLCULO DE TOKENS
+
+            // Token 1: Inicial Paterno
+            var t1 = paterno.charAt(0);
+            
+            // Token 2: Vocal Interna Paterno
+            var t2 = obtenerVocalInterna(paterno);
+
+            // Token 3: Inicial Materno
+            var t3 = (materno === "") ? "X" : materno.charAt(0);
+
+            // Token 4: Inicial Nombre
+            var t4 = nombre.charAt(0);
+
+            // Token 5: Fecha (YYMMDD)
+            var anio = fecha.substr(2, 2);
+            var mes = fecha.substr(5, 2);
+            var dia = fecha.substr(8, 2);
+            var t5 = anio + mes + dia;
+
+            // Token 6: Sexo
+            var t6 = sexo;
+
+            // Token 7: Entidad
+            var t7 = entidad;
+
+            // Token 8: Consonantes Internas
+            var cP = obtenerConsonanteInterna(paterno);
+            var cM = (materno === "") ? "X" : obtenerConsonanteInterna(materno);
+            var cN = obtenerConsonanteInterna(nombre);
+            var t8 = cP + cM + cN;
+
+            // Token 9: Homoclave
+            var t9 = "A9"; // Fija para este ejemplo
+
+            // 3. GENERACIÓN DE CURP
+            var curp = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8 + t9;
+            document.getElementById("resultado-final").innerText = curp;
+
+            // 4. GENERACIÓN DE TABLA HTML
+            var tbody = document.getElementById("cuerpo-tabla");
+            tbody.innerHTML = ""; // Limpiar tabla anterior
+
+            // Insertar filas
+            agregarFila(tbody, "1", t1, "Inicial Paterno", "Primera letra del primer apellido");
+            agregarFila(tbody, "2", t2, "Vocal Interna", "Primera vocal del primer apellido (excluyendo la inicial)");
+            agregarFila(tbody, "3", t3, "Inicial Materno", "Primera letra del segundo apellido (o X si no existe)");
+            agregarFila(tbody, "4", t4, "Inicial Nombre", "Primera letra del nombre de pila");
+            agregarFila(tbody, "5-10", t5, "Fecha Nacimiento", "Formato AAMMDD (Año, Mes, Día)");
+            agregarFila(tbody, "11", t6, "Sexo", "H para Hombre, M para Mujer");
+            agregarFila(tbody, "12-13", t7, "Entidad Federativa", "Código Renapo (DF o SR restringido)");
+            agregarFila(tbody, "14-16", t8, "Consonantes Internas", "1ra consonante interna de: Paterno + Materno + Nombre");
+            agregarFila(tbody, "17-18", t9, "Homoclave", "Dígito diferenciador y verificador (Simulado)");
+        }
+
+        // --- FUNCIONES AUXILIARES ---
+
+        function agregarFila(tbody, pos, valor, concepto, regla) {
+            var fila = document.createElement("tr");
+            
+            var celdaPos = document.createElement("td");
+            celdaPos.innerText = pos;
+            fila.appendChild(celdaPos);
+
+            var celdaValor = document.createElement("td");
+            celdaValor.innerHTML = "<b>" + valor + "</b>";
+            fila.appendChild(celdaValor);
+
+            var celdaConcepto = document.createElement("td");
+            celdaConcepto.innerText = concepto;
+            fila.appendChild(celdaConcepto);
+
+            var celdaRegla = document.createElement("td");
+            celdaRegla.innerText = regla;
+            fila.appendChild(celdaRegla);
+
+            tbody.appendChild(fila);
+        }
+
+        function esVocal(c) { return "AEIOU".includes(c); }
+
+        function obtenerVocalInterna(str) {
+            for (var i = 1; i < str.length; i++) {
+                if (esVocal(str[i])) return str[i];
+            }
+            return "X";
+        }
+
+        function obtenerConsonanteInterna(str) {
+            for (var i = 1; i < str.length; i++) {
+                var c = str[i];
+                if (!esVocal(c) && c !== 'Ñ') return c;
+                if (c === 'Ñ') return 'X';
+            }
+            return "X";
+        }
+    </script>
+
+</body>
+</html>
