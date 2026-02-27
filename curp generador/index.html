@@ -71,6 +71,16 @@
                 return;
             }
 
+            // Validación de año bisiesto
+            var anioCompleto = parseInt(fecha.substr(0, 4), 10);
+            var mesValidacion = parseInt(fecha.substr(5, 2), 10);
+            var diaValidacion = parseInt(fecha.substr(8, 2), 10);
+
+            if (mesValidacion === 2 && diaValidacion === 29 && !esBisiesto(anioCompleto)) {
+                alert("Error: La fecha es inválida. El año seleccionado no es bisiesto.");
+                return;
+            }
+
             // 2. CÁLCULO DE TOKENS
 
             // Token 1: Inicial Paterno
@@ -166,6 +176,10 @@
                 if (c === 'Ñ') return 'X';
             }
             return "X";
+        }
+
+        function esBisiesto(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
         }
     </script>
 
