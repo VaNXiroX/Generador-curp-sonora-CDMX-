@@ -11,13 +11,13 @@
     <hr>
 
     <label>Nombre(s):</label><br>
-    <input type="text" id="nombre"><br><br>
+    <input type="text" id="nombre" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"><br><br>
 
     <label>Primer Apellido:</label><br>
-    <input type="text" id="paterno"><br><br>
+    <input type="text" id="paterno" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"><br><br>
 
     <label>Segundo Apellido:</label><br>
-    <input type="text" id="materno"><br><br>
+    <input type="text" id="materno" oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '')"><br><br>
 
     <label>Fecha de Nacimiento:</label><br>
     <input type="date" id="fecha"><br><br>
@@ -68,6 +68,16 @@
 
             if (nombre === "" || paterno === "" || fecha === "") {
                 alert("Faltan datos requeridos.");
+                return;
+            }
+
+            // Validación de año bisiesto
+            var anioCompleto = parseInt(fecha.substr(0, 4), 10);
+            var mesValidacion = parseInt(fecha.substr(5, 2), 10);
+            var diaValidacion = parseInt(fecha.substr(8, 2), 10);
+
+            if (mesValidacion === 2 && diaValidacion === 29 && !esBisiesto(anioCompleto)) {
+                alert("Error: La fecha es inválida. El año seleccionado no es bisiesto.");
                 return;
             }
 
@@ -166,6 +176,10 @@
                 if (c === 'Ñ') return 'X';
             }
             return "X";
+        }
+
+        function esBisiesto(year) {
+            return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
         }
     </script>
 
